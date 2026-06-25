@@ -1,0 +1,868 @@
+---
+title: "Work Sample (NELS Dataset)"
+date: "December 17, 2022"
+author: "Isaac Stiepleman"
+output:
+  pdf_document:
+    keep_md: TRUE
+fontsize: 11pt
+geometry: margin = 1in
+---
+
+#add explanations at each step, clean up code (condense where possible), try and edit graphs to be in order of values (if possible)
+#Maybe use different language to produce the ggplot graphs? Just to prove you can?
+
+#Data Analysis of the 1988 National Educational Longitudinal Study (NELS 1988) - Isaac Stiepleman
+
+```{r Practice Work}
+#Messing around
+familysize_by_urbanicity <- NELS[NELS$Urbanicity == 'Suburban', 'Family Size']
+
+print(familysize_by_urbanicity)
+summary(familysize_by_urbanicity)
+
+suburbancount <- NELS %>%
+  group_by(Urbanicity) %>%
+  filter(Urbanicity == 'Suburban') %>%
+  summarize(Count = n())
+
+print(suburbancount)
+```
+
+##Introductory Code
+
+```{r Loading Relevant Materials}
+#I begin by loading the necessary R packages which will enable me to utilize a variety of functions.
+library(readxl)
+library(tidyverse) #For general data visualization functions
+library(ggplot2) #For the ggplot graphing function
+library(dplyr) #For the Pipe Syntax Operator
+
+#Next I import and take a cursory glance at the 1988 NELS dataset.
+NELS <- read_excel("~/Documents/R Data/NELS.xlsx")
+View(NELS)
+```
+
+```{r Building the Average Academic Achievement Vector}
+#In order to conduct an empirical analysis of the 1988 NELS dataset, I will first compare a variety of qualitative and quantitative variables with each students academic achievement.
+
+#To this end, I will average out each students achievement in Reading, Math, Social Studies, and Science in 12th grade to build a vector of their average academic achievement.
+`Academic Achievement in 12th Grade` <- (NELS$`Reading Achievement in Twelfth Grade` + NELS$`Math Achievement in Twelfth Grade` + NELS$`Social Studies Achievement in Twelfth Grade`+ NELS$`Science Achievement in Twelfth Grade`)/4
+
+#I now add this new vector to the original 1988 NELS dataset
+NELS$`Academic Achievement in 12th Grade` = `Academic Achievement in 12th Grade`
+View(NELS)
+```
+
+#PART I
+
+##QUALITATIVE VARIABLES
+
+###SCHOOL ELEMENTS - Location | Other Properties (synonym: attributes?)
+
+####Location - Urbanicity | Geographic Region
+
+```{r Variable X - Urbanicity}
+
+
+rural_achievement <- NELS[NELS$Urbanicity == 'Rural', 'Academic Achievement in 12th Grade']
+mod_rural_achievement <- unlist(rural_achievement)
+summary(rural_achievement)
+sd(mod_rural_achievement)
+
+suburban_achievement <- NELS[NELS$Urbanicity == 'Suburban', 'Academic Achievement in 12th Grade']
+mod_suburban_achievement <- unlist(suburban_achievement)
+summary(suburban_achievement)
+sd(mod_suburban_achievement)
+
+urban_achievement <- NELS[NELS$Urbanicity == 'Urban', 'Academic Achievement in 12th Grade']
+mod_urban_achievement <- unlist(urban_achievement)
+summary(urban_achievement)
+sd(mod_urban_achievement)
+
+urbanicitycount <- NELS %>%
+  group_by(Urbanicity) %>%
+  summarize(Count = n())
+print(urbanicitycount)
+
+df_rural_achievement <- data.frame(rural_achievement, check.names = FALSE)
+df_suburban_achievement <- data.frame(suburban_achievement, check.names = FALSE)
+df_urban_achievement <- data.frame(urban_achievement, check.names = FALSE)
+
+df_urbanicity_list <- list(`Rural` = df_rural_achievement, `Suburban` = df_suburban_achievement, `Urban` = df_urban_achievement)
+df_urbanicity_combined <- bind_rows(df_urbanicity_list, .id = "Urbanicity")
+
+x_var = "Academic Achievement in 12th Grade"
+y_var = "Urbanicity"
+ggplot(df_urbanicity_combined, mapping = aes(x = .data[[x_var]], y = .data[[y_var]], fill = Urbanicity)) + geom_boxplot(alpha = .5) + labs(x = x_var, y = y_var, caption = "Source: NELS 1988") + theme(legend.position = "none")
+
+ggplot(df_urbanicity_combined, mapping = aes(x = `Academic Achievement in 12th Grade`, fill = Urbanicity)) + geom_density(alpha = .5) + labs(caption = "Source: NELS 1988")
+
+```
+
+```{r Variable X - Geographic Region}
+
+
+south_achievement <- NELS[NELS$`Geographic Region of School` == 'South', 'Academic Achievement in 12th Grade']
+mod_south_achievement <- unlist(south_achievement)
+summary(south_achievement)
+sd(mod_south_achievement)
+
+west_achievement <- NELS[NELS$`Geographic Region of School` == 'West', 'Academic Achievement in 12th Grade']
+mod_west_achievement <- unlist(west_achievement)
+summary(west_achievement)
+sd(mod_west_achievement)
+
+northcentral_achievement <- NELS[NELS$`Geographic Region of School` == 'North Central', 'Academic Achievement in 12th Grade']
+mod_northcentral_achievement <- unlist(northcentral_achievement)
+summary(northcentral_achievement)
+sd(mod_northcentral_achievement)
+
+northeast_achievement <- NELS[NELS$`Geographic Region of School` == 'Northeast', 'Academic Achievement in 12th Grade']
+mod_northeast_achievement <- unlist(northeast_achievement)
+summary(northeast_achievement)
+sd(mod_northeast_achievement)
+
+geographicregioncount <- NELS %>%
+  group_by(`Geographic Region of School`) %>%
+  summarize(Count = n())
+print(geographicregioncount)
+
+df_south_achievement <- data.frame(south_achievement, check.names = FALSE)
+df_west_achievement <- data.frame(west_achievement, check.names = FALSE)
+df_northcentral_achievement <- data.frame(northcentral_achievement, check.names = FALSE)
+df_northeast_achievement <- data.frame(northeast_achievement, check.names = FALSE)
+
+df_geographicregion_list <- list(`South` = df_south_achievement, `West` = df_west_achievement, `North Central` = df_northcentral_achievement, `Northeast` = df_northeast_achievement)
+df_geographicregion_combined <- bind_rows(df_geographicregion_list, .id = "Geographic Region of School")
+
+x_var = "Academic Achievement in 12th Grade"
+y_var = "Geographic Region of School"
+ggplot(df_geographicregion_combined, mapping = aes(x = .data[[x_var]], y = .data[[y_var]], fill = `Geographic Region of School`)) + geom_boxplot(alpha = .5) + labs(x = x_var, y = y_var, caption = "Source: NELS 1988") + theme(legend.position = "none")
+
+ggplot(df_geographicregion_combined, mapping = aes(x = `Academic Achievement in 12th Grade`, fill = `Geographic Region of School`)) + geom_density(alpha = .5) + labs(caption = "Source: NELS 1988")
+```
+
+####Additional Elements - School Type | High School Program | AP Program | Teachers are Interested in Students
+
+```{r Variable X - School Type}
+
+
+religious_achievement <- NELS[NELS$`School Type in Eighth Grade` == 'Private, Religious', 'Academic Achievement in 12th Grade']
+mod_religious_achievement <- unlist(religious_achievement)
+summary(religious_achievement)
+sd(mod_religious_achievement)
+
+nonreligious_achievement <- NELS[NELS$`School Type in Eighth Grade` == 'Private, Non-Religious', 'Academic Achievement in 12th Grade']
+mod_nonreligious_achievement <- unlist(nonreligious_achievement)
+summary(nonreligious_achievement)
+sd(mod_nonreligious_achievement)
+
+public_achievement <- NELS[NELS$`School Type in Eighth Grade` == 'Public', 'Academic Achievement in 12th Grade']
+mod_public_achievement <- unlist(public_achievement)
+summary(public_achievement)
+sd(mod_public_achievement)
+
+schooltypecount <- NELS %>%
+  group_by(`School Type in Eighth Grade`) %>%
+  summarize(Count = n())
+print(schooltypecount)
+
+df_religious_achievement <- data.frame(religious_achievement, check.names = FALSE)
+df_nonreligious_achievement <- data.frame(nonreligious_achievement, check.names = FALSE)
+df_public_achievement <- data.frame(`Public Achievement` = public_achievement, check.names = FALSE)
+
+df_schooltype_list <- list(`Private, Religious` = df_religious_achievement, `Private, Non-Religious` = df_nonreligious_achievement, `Public` = df_public_achievement)
+df_schooltype_combined <- bind_rows(df_schooltype_list, .id = "School Type")
+
+x_var = "Academic Achievement in 12th Grade"
+y_var = "School Type"
+ggplot(df_schooltype_combined, mapping = aes(x = .data[[x_var]], y = .data[[y_var]], fill = `School Type`)) + geom_boxplot(alpha = .5) + labs(x = x_var, y = y_var, caption = "Source: NELS 1988") + theme(legend.position = "none")
+
+ggplot(df_schooltype_combined, mapping = aes(x = `Academic Achievement in 12th Grade`, fill = `School Type`)) + geom_density(alpha = .5) + labs(caption = "Source: NELS 1988")
+
+```
+
+```{r Variable X - High School Program}
+
+academic_achievement <- NELS[NELS$`Type of High School Program` == 'Academic', 'Academic Achievement in 12th Grade']
+mod_academic_achievement <- unlist(academic_achievement)
+summary(academic_achievement)
+sd(mod_academic_achievement)
+
+rigorousacademic_achievement <- NELS[NELS$`Type of High School Program` == 'Rigorous Academic', 'Academic Achievement in 12th Grade']
+mod_rigorousacademic_achievement <- unlist(rigorousacademic_achievement)
+summary(rigorousacademic_achievement)
+sd(mod_rigorousacademic_achievement)
+
+vocational_achievement <- NELS[NELS$`Type of High School Program` == 'Some Vocational', 'Academic Achievement in 12th Grade']
+mod_vocational_achievement <- unlist(vocational_achievement)
+summary(vocational_achievement)
+sd(mod_vocational_achievement)
+
+other_achievement <- NELS[NELS$`Type of High School Program` == 'Other', 'Academic Achievement in 12th Grade']
+mod_other_achievement <- unlist(other_achievement)
+summary(other_achievement)
+sd(mod_other_achievement)
+
+programcount <- NELS %>%
+  group_by(`Type of High School Program`) %>%
+  summarize(Count = n())
+print(programcount)
+
+df_academic_achievement <- data.frame(academic_achievement, check.names = FALSE)
+df_rigorousacademic_achievement <- data.frame(rigorousacademic_achievement, check.names = FALSE)
+df_vocational_achievement <- data.frame(vocational_achievement, check.names = FALSE)
+df_other_achievement <- data.frame(other_achievement, check.names = FALSE)
+
+df_program_list <- list(`Academic` = df_academic_achievement, `Rigorous Academic` = df_rigorousacademic_achievement, `Some Vocational` = df_vocational_achievement, `Other` = df_other_achievement)
+df_program_combined <- bind_rows(df_program_list, .id = "Type of High School Program")
+
+x_var = "Academic Achievement in 12th Grade"
+y_var = "Type of High School Program"
+ggplot(df_program_combined, mapping = aes(x = .data[[x_var]], y = .data[[y_var]], fill = `Type of High School Program`)) + geom_boxplot(alpha = .5) + labs(x = x_var, y = y_var, caption = "Source: NELS 1988") + theme(legend.position = "none")
+
+ggplot(df_program_combined, mapping = aes(x = `Academic Achievement in 12th Grade`, fill = `Type of High School Program`)) + geom_density(alpha = .5) + labs(caption = "Source: NELS 1988")
+```
+
+```{r Variable X - AP Program}
+
+
+apyes_achievement <- NELS[NELS$`Advanced Placement Program Taken?` == 'Yes', 'Academic Achievement in 12th Grade']
+mod_apyes_achievement <- unlist(apyes_achievement)
+summary(apyes_achievement)
+sd(mod_apyes_achievement)
+
+apno_achievement <- NELS[NELS$`Advanced Placement Program Taken?` == 'No', 'Academic Achievement in 12th Grade']
+mod_apno_achievement <- unlist(apno_achievement)
+summary(apno_achievement)
+sd(mod_apno_achievement)
+
+apcount <- NELS %>%
+  group_by(`Advanced Placement Program Taken?`) %>%
+  filter(`Advanced Placement Program Taken?` == 'No' | `Advanced Placement Program Taken?` == 'Yes') %>%
+  summarize(Count = n())
+print(apcount)
+
+df_apyes_achievement <- data.frame(apyes_achievement, check.names = FALSE)
+df_apno_achievement <- data.frame(apno_achievement, check.names = FALSE)
+
+df_approgram_list <- list(`Yes` = df_apyes_achievement, `No` = df_apno_achievement)
+df_approgram_combined <- bind_rows(df_approgram_list, .id = "AP Program Taken?")
+
+x_var = "Academic Achievement in 12th Grade"
+y_var = "AP Program Taken?"
+ggplot(df_approgram_combined, mapping = aes(x = .data[[x_var]], y = .data[[y_var]], fill = `AP Program Taken?`)) + geom_boxplot(alpha = .5) + labs(x = x_var, y = y_var, caption = "Source: NELS 1988") + theme(legend.position = "none")
+
+ggplot(df_approgram_combined, mapping = aes(x = `Academic Achievement in 12th Grade`, fill = `AP Program Taken?`)) + geom_density(alpha = .5) + labs(caption = "Source: NELS 1988")
+```
+
+```{r Variable X - Teacher Interest}
+
+Sagree_achievement <- NELS[NELS$`My Teachers are Interested in Students` == 'Strongly Agree', 'Academic Achievement in 12th Grade']
+mod_Sagree_achievement <- unlist(Sagree_achievement)
+summary(Sagree_achievement)
+sd(mod_Sagree_achievement)
+
+agree_achievement <- NELS[NELS$`My Teachers are Interested in Students` == 'Agree', 'Academic Achievement in 12th Grade']
+mod_agree_achievement <- unlist(agree_achievement)
+summary(agree_achievement)
+sd(mod_agree_achievement)
+
+disagree_achievement <- NELS[NELS$`My Teachers are Interested in Students` == 'Disagree', 'Academic Achievement in 12th Grade']
+mod_disagree_achievement <- unlist(disagree_achievement)
+summary(disagree_achievement)
+sd(mod_disagree_achievement)
+
+Sdisagree_achievement <- NELS[NELS$`My Teachers are Interested in Students` == 'Strongly Disagree', 'Academic Achievement in 12th Grade']
+mod_Sdisagree_achievement <- unlist(Sdisagree_achievement)
+summary(Sdisagree_achievement)
+sd(mod_Sdisagree_achievement)
+
+teacherinterestcount <- NELS %>%
+  group_by(`My Teachers are Interested in Students`) %>%
+  summarize(Count = n())
+print(teacherinterestcount)
+
+df_Sagree_achievement <- data.frame(Sagree_achievement, check.names = FALSE)
+df_agree_achievement <- data.frame(agree_achievement, check.names = FALSE)
+df_disagree_achievement <- data.frame(disagree_achievement, check.names = FALSE)
+df_Sdisagree_achievement <- data.frame(Sdisagree_achievement, check.names = FALSE)
+
+df_teacherinterest_list <- list(`Strongly Agree` = df_Sagree_achievement, `Agree` = df_agree_achievement, `Disagree` = df_disagree_achievement, `Strongly Disagree` = df_Sdisagree_achievement)
+df_teacherinterest_combined <- bind_rows(df_teacherinterest_list, .id = "My Teachers are Interested in Students")
+
+x_var = "Academic Achievement in 12th Grade"
+y_var = "My Teachers are Interested in Students"
+ggplot(df_teacherinterest_combined, mapping = aes(x = .data[[x_var]], y = .data[[y_var]], fill = `My Teachers are Interested in Students`)) + geom_boxplot(alpha = .5) + labs(x = x_var, y = y_var, caption = "Source: NELS 1988") + theme(legend.position = "none")
+
+ggplot(df_teacherinterest_combined, mapping = aes(x = `Academic Achievement in 12th Grade`, fill = `My Teachers are Interested in Students`)) + geom_density(alpha = .5) + labs(caption = "Source: NELS 1988")
+```
+
+###PERSONAL ELEMENTS - Home Life | Substance Use | Other Properties
+
+####Home Life - Home Language | Parent's Marital Status | Computer Ownership
+
+```{r Variable X - Home Language}
+
+englishdominant_achievement <- NELS[NELS$`Home Language Background` == 'English Dominant', 'Academic Achievement in 12th Grade']
+mod_englishdominant_achievement <- unlist(englishdominant_achievement)
+summary(englishdominant_achievement)
+sd(mod_englishdominant_achievement)
+
+englishonly_achievement <- NELS[NELS$`Home Language Background` == 'English Only', 'Academic Achievement in 12th Grade']
+mod_englishonly_achievement <- unlist(englishonly_achievement)
+summary(englishonly_achievement)
+sd(mod_englishonly_achievement)
+
+nonenglishdominant_achievement <- NELS[NELS$`Home Language Background` == 'Non-English Dominant', 'Academic Achievement in 12th Grade']
+mod_nonenglishdominant_achievement <- unlist(nonenglishdominant_achievement)
+summary(nonenglishdominant_achievement)
+sd(mod_nonenglishdominant_achievement)
+
+nonenglishonly_achievement <- NELS[NELS$`Home Language Background` == 'Non-English Only', 'Academic Achievement in 12th Grade']
+mod_nonenglishonly_achievement <- unlist(nonenglishonly_achievement)
+summary(nonenglishonly_achievement)
+sd(mod_nonenglishonly_achievement)
+
+homelanguagecount <- NELS %>%
+  group_by(`Home Language Background`) %>%
+  summarize(Count = n())
+print(homelanguagecount)
+
+df_englishdominant_achievement <- data.frame(englishdominant_achievement, check.names = FALSE)
+df_englishonly_achievement <- data.frame(englishonly_achievement, check.names = FALSE)
+df_nonenglishdominant_achievement <- data.frame(nonenglishdominant_achievement, check.names = FALSE)
+df_nonenglishonly_achievement <- data.frame(nonenglishonly_achievement, check.names = FALSE)
+
+df_homelanguage_list <- list(`English Dominant` = df_englishdominant_achievement, `English Only` = df_englishonly_achievement, `Non-English Dominant` = df_nonenglishdominant_achievement, `Non-English Only` = df_nonenglishonly_achievement)
+df_homelanguage_combined <- bind_rows(df_homelanguage_list, .id = "Home Language Background")
+
+x_var = "Academic Achievement in 12th Grade"
+y_var = "Home Language Background"
+ggplot(df_homelanguage_combined, mapping = aes(x = .data[[x_var]], y = .data[[y_var]], fill = `Home Language Background`)) + geom_boxplot(alpha = .5) + labs(x = x_var, y = y_var, caption = "Source: NELS 1988") + theme(legend.position = "none")
+
+ggplot(df_homelanguage_combined, mapping = aes(x = `Academic Achievement in 12th Grade`, fill = `Home Language Background`)) + geom_density(alpha = .5) + labs(caption = "Source: NELS 1988")
+```
+
+```{r Variable X - Parent's Marital Status}
+married_achievement <- NELS[NELS$`Parents' Marital Status in Eighth Grade` == 'Married', 'Academic Achievement in 12th Grade']
+mod_married_achievement <- unlist(married_achievement)
+summary(married_achievement)
+sd(mod_married_achievement)
+
+marriagelike_achievement <- NELS[NELS$`Parents' Marital Status in Eighth Grade` == 'Marriage-Like Relationship', 'Academic Achievement in 12th Grade']
+mod_marriagelike_achievement <- unlist(marriagelike_achievement)
+summary(marriagelike_achievement)
+sd(mod_marriagelike_achievement)
+
+divorced_achievement <- NELS[NELS$`Parents' Marital Status in Eighth Grade` == 'Divorced', 'Academic Achievement in 12th Grade']
+mod_divorced_achievement <- unlist(divorced_achievement)
+summary(divorced_achievement)
+sd(mod_divorced_achievement)
+
+nevermarried_achievement <- NELS[NELS$`Parents' Marital Status in Eighth Grade` == 'Never Married', 'Academic Achievement in 12th Grade']
+mod_nevermarried_achievement <- unlist(nevermarried_achievement)
+summary(nevermarried_achievement)
+sd(mod_nevermarried_achievement)
+
+separated_achievement <- NELS[NELS$`Parents' Marital Status in Eighth Grade` == 'Separated', 'Academic Achievement in 12th Grade']
+mod_separated_achievement <- unlist(separated_achievement)
+summary(separated_achievement)
+sd(mod_separated_achievement)
+
+widowed_achievement <- NELS[NELS$`Parents' Marital Status in Eighth Grade` == 'Widowed', 'Academic Achievement in 12th Grade']
+mod_widowed_achievement <- unlist(widowed_achievement)
+summary(widowed_achievement)
+sd(mod_widowed_achievement)
+
+maritalstatuscount <- NELS %>%
+  group_by(`Parents' Marital Status in Eighth Grade`) %>%
+  summarize(Count = n())
+print(maritalstatuscount)
+
+df_married_achievement <- data.frame(married_achievement, check.names = FALSE)
+df_marriagelike_achievement <- data.frame(marriagelike_achievement, check.names = FALSE)
+df_divorced_achievement <- data.frame(divorced_achievement, check.names = FALSE)
+df_nevermarried_achievement <- data.frame(nevermarried_achievement, check.names = FALSE)
+df_separated_achievement <- data.frame(separated_achievement, check.names = FALSE)
+df_widowed_achievement <- data.frame(widowed_achievement, check.names = FALSE)
+
+df_partnership_achievement <- rbind(df_married_achievement, df_marriagelike_achievement)
+df_single_achievement <- rbind(df_divorced_achievement, df_nevermarried_achievement, df_separated_achievement, df_widowed_achievement)
+
+df_maritalstatus_list <- list(`Married or Equivalent` = df_partnership_achievement, `Single or Equivalent` = df_single_achievement)
+df_maritalstatus_combined <- bind_rows(df_maritalstatus_list, .id = "Parent's Marital Status")
+
+x_var = "Academic Achievement in 12th Grade"
+y_var = "Parent's Marital Status"
+ggplot(df_maritalstatus_combined, mapping = aes(x = .data[[x_var]], y = .data[[y_var]], fill = `Parent's Marital Status`)) + geom_boxplot(alpha = .5) + labs(x = x_var, y = y_var, caption = "Source: NELS 1988") + theme(legend.position = "none")
+
+ggplot(df_maritalstatus_combined, mapping = aes(x = `Academic Achievement in 12th Grade`, fill = `Parent's Marital Status`)) + geom_density(alpha = .5) + labs(caption = "Source: NELS 1988")
+```
+
+```{r Variable X - Computer Ownership}
+
+
+computeryes_achievement <- NELS[NELS$`Computer Owned by Family in Eighth Grade?` == 'Yes', 'Academic Achievement in 12th Grade']
+mod_computeryes_achievement <- unlist(computeryes_achievement)
+summary(computeryes_achievement)
+sd(mod_computeryes_achievement)
+
+computerno_achievement <- NELS[NELS$`Computer Owned by Family in Eighth Grade?` == 'No', 'Academic Achievement in 12th Grade']
+mod_computerno_achievement <- unlist(computerno_achievement)
+summary(computerno_achievement)
+sd(mod_computerno_achievement)
+
+computercount <- NELS %>%
+  group_by(`Computer Owned by Family in Eighth Grade?`) %>%
+  summarize(Count = n())
+print(computercount)
+
+df_computeryes_achievement <- data.frame(computeryes_achievement, check.names = FALSE)
+df_computerno_achievement <- data.frame(computerno_achievement, check.names = FALSE)
+
+df_computerownership_list <- list(`Yes` = df_computeryes_achievement, `No` = df_computerno_achievement)
+df_computerownership_combined <- bind_rows(df_computerownership_list, .id = "Computer Owned by Family?")
+
+x_var = "Academic Achievement in 12th Grade"
+y_var = "Computer Owned by Family?"
+ggplot(df_computerownership_combined, mapping = aes(x = .data[[x_var]], y = .data[[y_var]], fill = `Computer Owned by Family?`)) + geom_boxplot(alpha = .5) + labs(x = x_var, y = y_var, caption = "Source: NELS 1988") + theme(legend.position = "none")
+
+ggplot(df_computerownership_combined, mapping = aes(x = `Academic Achievement in 12th Grade`, fill = `Computer Owned by Family?`)) + geom_density(alpha = .5) + labs(caption = "Source: NELS 1988")
+```
+
+####Substance Use - Alcohol Use | Marijuana Use | Cigarette Use
+
+```{r Variable X - Alcohol Use}
+
+alcoholyes_achievement <- NELS[NELS$`Binged on Alcohol Ever?` == 'Yes', 'Academic Achievement in 12th Grade']
+mod_alcoholyes_achievement <- unlist(alcoholyes_achievement)
+summary(alcoholyes_achievement)
+sd(mod_alcoholyes_achievement)
+
+alcoholnever_achievement <- NELS[NELS$`Binged on Alcohol Ever?` == 'Never', 'Academic Achievement in 12th Grade']
+mod_alcoholnever_achievement <- unlist(alcoholnever_achievement)
+summary(alcoholnever_achievement)
+sd(mod_alcoholnever_achievement)
+
+alcoholcount <- NELS %>%
+  group_by(`Binged on Alcohol Ever?`) %>%
+  summarize(Count = n())
+print(alcoholcount)
+
+df_alcoholyes_achievement <- data.frame(alcoholyes_achievement, check.names = FALSE)
+df_alcoholnever_achievement <- data.frame(alcoholnever_achievement, check.names = FALSE)
+
+df_alcohol_list <- list(`Yes` = df_alcoholyes_achievement, `Never` = df_alcoholnever_achievement)
+df_alcohol_combined <- bind_rows(df_alcohol_list, .id = "Ever Binged on Alcohol?")
+
+x_var = "Academic Achievement in 12th Grade"
+y_var = "Ever Binged on Alcohol?"
+ggplot(df_alcohol_combined, mapping = aes(x = .data[[x_var]], y = .data[[y_var]], fill = `Ever Binged on Alcohol?`)) + geom_boxplot(alpha = .5) + labs(x = x_var, y = y_var, caption = "Source: NELS 1988") + theme(legend.position = "none")
+
+ggplot(df_alcohol_combined, mapping = aes(x = `Academic Achievement in 12th Grade`, fill = `Ever Binged on Alcohol?`)) + geom_density(alpha = .5) + labs(caption = "Source: NELS 1988")
+```
+
+```{r Variable X - Marijuana Use}
+
+marijuanayes_achievement <- NELS[NELS$`Smoked Marijuana Ever?` == 'Yes', 'Academic Achievement in 12th Grade']
+mod_marijuanayes_achievement <- unlist(marijuanayes_achievement)
+summary(marijuanayes_achievement)
+sd(mod_marijuanayes_achievement)
+
+marijuananever_achievement <- NELS[NELS$`Smoked Marijuana Ever?` == 'Never', 'Academic Achievement in 12th Grade']
+mod_marijuananever_achievement <- unlist(marijuananever_achievement)
+summary(marijuananever_achievement)
+sd(mod_marijuananever_achievement)
+
+marijuanacount <- NELS %>%
+  group_by(`Smoked Marijuana Ever?`) %>%
+  summarize(Count = n())
+print(marijuanacount)
+
+df_marijuanayes_achievement <- data.frame(marijuanayes_achievement, check.names = FALSE)
+df_marijuananever_achievement <- data.frame(marijuananever_achievement, check.names = FALSE)
+
+df_marijuana_list <- list(`Yes` = df_marijuanayes_achievement, `Never` = df_marijuananever_achievement)
+df_marijuana_combined <- bind_rows(df_marijuana_list, .id = "Ever Smoked Marijuana?")
+
+x_var = "Academic Achievement in 12th Grade"
+y_var = "Ever Smoked Marijuana?"
+ggplot(df_marijuana_combined, mapping = aes(x = .data[[x_var]], y = .data[[y_var]], fill = `Ever Smoked Marijuana?`)) + geom_boxplot(alpha = .5) + labs(x = x_var, y = y_var, caption = "Source: NELS 1988") + theme(legend.position = "none")
+
+ggplot(df_marijuana_combined, mapping = aes(x = `Academic Achievement in 12th Grade`, fill = `Ever Smoked Marijuana?`)) + geom_density(alpha = .5) + labs(caption = "Source: NELS 1988")
+```
+
+```{r Varibale X - Cigarette Use}
+
+cigarettesyes_achievement <- NELS[NELS$`Smoked Cigarettes Ever?` == 'Yes', 'Academic Achievement in 12th Grade']
+mod_cigarettesyes_achievement <- unlist(cigarettesyes_achievement)
+summary(cigarettesyes_achievement)
+sd(mod_cigarettesyes_achievement)
+
+cigarettesnever_achievement <- NELS[NELS$`Smoked Cigarettes Ever?` == 'Never', 'Academic Achievement in 12th Grade']
+mod_cigarettesnever_achievement <- unlist(cigarettesnever_achievement)
+summary(cigarettesnever_achievement)
+sd(mod_cigarettesnever_achievement)
+
+cigarettescount <- NELS %>%
+  group_by(`Smoked Cigarettes Ever?`) %>%
+  summarize(Count = n())
+print(cigarettescount)
+
+df_cigarettesyes_achievement <- data.frame(cigarettesyes_achievement, check.names = FALSE)
+df_cigarettesnever_achievement <- data.frame(cigarettesnever_achievement, check.names = FALSE)
+
+df_cigarettes_list <- list(`Yes` = df_cigarettesyes_achievement, `Never` = df_cigarettesnever_achievement)
+df_cigarettes_combined <- bind_rows(df_cigarettes_list, .id = "Ever Smoked Cigarettes?")
+
+x_var = "Academic Achievement in 12th Grade"
+y_var = "Ever Smoked Cigarettes?"
+ggplot(df_cigarettes_combined, mapping = aes(x = .data[[x_var]], y = .data[[y_var]], fill = `Ever Smoked Cigarettes?`)) + geom_boxplot(alpha = .5) + labs(x = x_var, y = y_var, caption = "Source: NELS 1988") + theme(legend.position = "none")
+
+ggplot(df_cigarettes_combined, mapping = aes(x = `Academic Achievement in 12th Grade`, fill = `Ever Smoked Cigarettes?`)) + geom_density(alpha = .5) + labs(caption = "Source: NELS 1988")
+```
+
+####Other Properties - Gender | Highest Level of Education Expected | Nursery School
+
+```{r Variable X - Nursery School}
+
+
+nurseryyes_achievement <- NELS[NELS$`Nursery School Attended?` == 'Yes', 'Academic Achievement in 12th Grade']
+nona_nurseryyes_achievement <- na.omit(nurseryyes_achievement)
+mod_nurseryyes_achievement <- unlist(nona_nurseryyes_achievement)
+summary(nurseryyes_achievement)
+sd(mod_nurseryyes_achievement)
+
+nurseryno_achievement <- NELS[NELS$`Nursery School Attended?` == 'No', 'Academic Achievement in 12th Grade']
+nona_nurseryno_achievement <- na.omit(nurseryno_achievement)
+mod_nurseryno_achievement <- unlist(nona_nurseryno_achievement)
+summary(nurseryno_achievement)
+sd(mod_nurseryno_achievement)
+
+nurserycount <- NELS %>%
+  group_by(`Nursery School Attended?`) %>%
+  filter(`Nursery School Attended?` == 'Yes' | `Nursery School Attended?` == 'No') %>%
+  summarize(Count = n())
+print(nurserycount)
+
+#Different from past codes because of the NA values in the Nursery variable
+df_nurseryyes_achievement <- data.frame(nona_nurseryyes_achievement, check.names = FALSE)
+df_nurseryno_achievement <- data.frame(nona_nurseryno_achievement, check.names = FALSE)
+
+df_nurseryschool_list <- list(`Yes` = df_nurseryyes_achievement, `No` = df_nurseryno_achievement)
+df_nurseryschool_combined <- bind_rows(df_nurseryschool_list, .id = "Attended Nursery School?")
+
+x_var = "Academic Achievement in 12th Grade"
+y_var = "Attended Nursery School?"
+ggplot(df_nurseryschool_combined, mapping = aes(x = .data[[x_var]], y = .data[[y_var]], fill = `Attended Nursery School?`)) + geom_boxplot(alpha = .5) + labs(x = x_var, y = y_var, caption = "Source: NELS 1988") + theme(legend.position = "none")
+
+ggplot(df_nurseryschool_combined, mapping = aes(x = `Academic Achievement in 12th Grade`, fill = `Attended Nursery School?`)) + geom_density(alpha = .5) + labs(caption = "Source: NELS 1988")
+```
+
+```{r Variable X - Gender}
+
+male_achievement <- NELS[NELS$Gender == 'Male', 'Academic Achievement in 12th Grade']
+mod_male_achievement <- unlist(male_achievement)
+summary(male_achievement)
+sd(mod_male_achievement)
+
+female_achievement <- NELS[NELS$Gender == 'Female', 'Academic Achievement in 12th Grade']
+mod_female_achievement <- unlist(female_achievement)
+summary(female_achievement)
+sd(mod_female_achievement)
+
+gendercount <- NELS %>%
+  group_by(Gender) %>%
+  summarize(Count = n())
+print(gendercount)
+
+df_male_achievement <- data.frame(male_achievement, check.names = FALSE)
+df_female_achievement <- data.frame(female_achievement, check.names = FALSE)
+
+df_gender_list <- list(`Male` = df_male_achievement, `Female` = df_female_achievement)
+df_gender_combined <- bind_rows(df_gender_list, .id = "Gender")
+
+x_var = "Academic Achievement in 12th Grade"
+y_var = "Gender"
+ggplot(df_gender_combined, mapping = aes(x = .data[[x_var]], y = .data[[y_var]], fill = Gender)) + geom_boxplot(alpha = .5) + labs(x = x_var, y = y_var, caption = "Source: NELS 1988") + theme(legend.position = "none")
+
+ggplot(df_gender_combined, mapping = aes(x = `Academic Achievement in 12th Grade`, fill = Gender)) + geom_density(alpha = .5) + labs(caption = "Source: NELS 1988")
+```
+
+```{r Variable X - Highest Education Level}
+
+bachelor_achievement <- NELS[NELS$`Highest level of education expected` == "Bachelor's Degree", 'Academic Achievement in 12th Grade']
+mod_bachelor_achievement <- unlist(bachelor_achievement)
+summary(bachelor_achievement)
+sd(mod_bachelor_achievement)
+
+masters_achievement <- NELS[NELS$`Highest level of education expected` == "Master's Degree", 'Academic Achievement in 12th Grade']
+mod_masters_achievement <- unlist(masters_achievement)
+summary(masters_achievement)
+sd(mod_masters_achievement)
+
+lesscollege_achievement <- NELS[NELS$`Highest level of education expected` == "Less than College Degree", 'Academic Achievement in 12th Grade']
+mod_lesscollege_achievement <- unlist(lesscollege_achievement)
+summary(lesscollege_achievement)
+sd(mod_lesscollege_achievement)
+
+phdetc_achievement <- NELS[NELS$`Highest level of education expected` == "Ph.D., MD, JD, etc.", 'Academic Achievement in 12th Grade']
+mod_phdetc_achievement <- unlist(phdetc_achievement)
+summary(phdetc_achievement)
+sd(mod_phdetc_achievement)
+
+educationlevelcount <- NELS %>%
+  group_by(`Highest level of education expected`) %>%
+  summarize(Count = n())
+print(educationlevelcount)
+
+df_bachelor_achievement <- data.frame(bachelor_achievement, check.names = FALSE)
+df_masters_achievement <- data.frame(masters_achievement, check.names = FALSE)
+df_lesscollege_achievement <- data.frame(lesscollege_achievement, check.names = FALSE)
+df_phdetc_achievement <- data.frame(phdetc_achievement, check.names = FALSE)
+
+df_educationlevel_list <- list(`Bachelor's Degree` = df_bachelor_achievement, `Master's Degree` = df_masters_achievement, `No College Degree` = df_lesscollege_achievement, `Ph.D., MD, JD, etc.` = df_phdetc_achievement)
+df_educationlevel_combined <- bind_rows(df_educationlevel_list, .id = "Highest Level of Education Expected")
+
+x_var = "Academic Achievement in 12th Grade"
+y_var = "Highest Level of Education Expected"
+ggplot(df_educationlevel_combined, mapping = aes(x = .data[[x_var]], y = .data[[y_var]], fill = `Highest Level of Education Expected`)) + geom_boxplot(alpha = .5) + labs(x = x_var, y = y_var, caption = "Source: NELS 1988") + theme(legend.position = "none")
+
+ggplot(df_educationlevel_combined, mapping = aes(x = `Academic Achievement in 12th Grade`, fill = `Highest Level of Education Expected`)) + geom_density(alpha = .5) + labs(caption = "Source: NELS 1988")
+```
+
+###SCHOOL ENGAGEMENT - Attendance | Time Spent Elsewhere
+
+####Attendance - Number of Times Late for School | Number of Times Skipped Class | Number of Times Missed School
+
+```{r Variable X - Number of Times Late for School}
+
+neverlate_achievement <- NELS[NELS$`Number Times Late for School in Twelfth Grade` == 'Never', 'Academic Achievement in 12th Grade']
+mod_neverlate_achievement <- unlist(neverlate_achievement)
+summary(neverlate_achievement)
+sd(mod_neverlate_achievement)
+
+onetwolate_achievement <- NELS[NELS$`Number Times Late for School in Twelfth Grade` == '1-2 Times', 'Academic Achievement in 12th Grade']
+mod_onetwolate_achievement <- unlist(onetwolate_achievement)
+summary(onetwolate_achievement)
+sd(mod_onetwolate_achievement)
+
+threesixlate_achievement <- NELS[NELS$`Number Times Late for School in Twelfth Grade` == '3-6 Times', 'Academic Achievement in 12th Grade']
+mod_threesixlate_achievement <- unlist(threesixlate_achievement)
+summary(threesixlate_achievement)
+sd(mod_threesixlate_achievement)
+
+sevenninelate_achievement <- NELS[NELS$`Number Times Late for School in Twelfth Grade` == '7-9 Times', 'Academic Achievement in 12th Grade']
+mod_sevenninelate_achievement <- unlist(sevenninelate_achievement)
+summary(sevenninelate_achievement)
+sd(mod_sevenninelate_achievement)
+
+tenfifteenlate_achievement <- NELS[NELS$`Number Times Late for School in Twelfth Grade` == '10-15 Times', 'Academic Achievement in 12th Grade']
+mod_tenfifteenlate_achievement <- unlist(tenfifteenlate_achievement)
+summary(tenfifteenlate_achievement)
+sd(mod_tenfifteenlate_achievement)
+
+overfifteenlate_achievement <- NELS[NELS$`Number Times Late for School in Twelfth Grade` == 'Over 15 Times', 'Academic Achievement in 12th Grade']
+mod_overfifteenlate_achievement <- unlist(overfifteenlate_achievement)
+summary(overfifteenlate_achievement)
+sd(mod_overfifteenlate_achievement)
+
+tardycount <- NELS %>%
+  group_by(`Number Times Late for School in Twelfth Grade`) %>%
+  summarize(Count = n())
+print(tardycount)
+
+#longer list b/c too many variables and I'm grouping them
+df_neverlate_achievement <- data.frame(neverlate_achievement, check.names = FALSE)
+df_onetwolate_achievement <- data.frame(onetwolate_achievement, check.names = FALSE)
+df_threesixlate_achievement <- data.frame(threesixlate_achievement, check.names = FALSE)
+df_sevenninelate_achievement <- data.frame(sevenninelate_achievement, check.names = FALSE)
+df_tenfifteenlate_achievement <- data.frame(tenfifteenlate_achievement, check.names = FALSE)
+df_overfifteenlate_achievement <- data.frame(overfifteenlate_achievement, check.names = FALSE)
+
+#create those extra groupings
+df_onesixlate_achievement <- rbind(df_onetwolate_achievement, df_threesixlate_achievement)
+df_sevenfifteenlate_achievement <- rbind(df_sevenninelate_achievement, df_tenfifteenlate_achievement)
+
+df_tardy_list <- list(`Never` = df_neverlate_achievement, `1-6 Times` = df_onesixlate_achievement, `7-15 Times` = df_sevenfifteenlate_achievement, `More than 15 Times` = df_overfifteenlate_achievement)
+df_tardy_combined <- bind_rows(df_tardy_list, .id = "Number of Times Late to School in 1 Year")
+
+x_var = "Academic Achievement in 12th Grade"
+y_var = "Number of Times Late to School in 1 Year"
+ggplot(df_tardy_combined, mapping = aes(x = .data[[x_var]], y = .data[[y_var]], fill = `Number of Times Late to School in 1 Year`)) + geom_boxplot(alpha = .5) + labs(x = x_var, y = y_var, caption = "Source: NELS 1988") + theme(legend.position = "none")
+
+ggplot(df_tardy_combined, mapping = aes(x = `Academic Achievement in 12th Grade`, fill = `Number of Times Late to School in 1 Year`)) + geom_density(alpha = .5) + labs(caption = "Source: NELS 1988")
+```
+
+```{r Variable X - Number of Times Skipped Class}
+
+
+neverskip_achievement <- NELS[NELS$`Number of Times Skipped/Cut Classes in Twelfth Grade` == 'Never', 'Academic Achievement in 12th Grade']
+mod_neverskip_achievement <- unlist(neverskip_achievement)
+summary(neverskip_achievement)
+sd(mod_neverskip_achievement)
+
+onetwoskip_achievement <- NELS[NELS$`Number of Times Skipped/Cut Classes in Twelfth Grade` == '1-2 Times', 'Academic Achievement in 12th Grade']
+mod_onetwoskip_achievement <- unlist(onetwoskip_achievement)
+summary(onetwoskip_achievement)
+sd(mod_onetwoskip_achievement)
+
+threesixskip_achievement <- NELS[NELS$`Number of Times Skipped/Cut Classes in Twelfth Grade` == '3-6 Times', 'Academic Achievement in 12th Grade']
+mod_threesixskip_achievement <- unlist(threesixskip_achievement)
+summary(threesixskip_achievement)
+sd(mod_threesixskip_achievement)
+
+sevennineskip_achievement <- NELS[NELS$`Number of Times Skipped/Cut Classes in Twelfth Grade` == '7-9 Times', 'Academic Achievement in 12th Grade']
+mod_sevennineskip_achievement <- unlist(sevennineskip_achievement)
+summary(sevennineskip_achievement)
+sd(mod_sevennineskip_achievement)
+
+tenfifteenskip_achievement <- NELS[NELS$`Number of Times Skipped/Cut Classes in Twelfth Grade` == '10-15 Times', 'Academic Achievement in 12th Grade']
+mod_tenfifteenskip_achievement <- unlist(tenfifteenskip_achievement)
+summary(tenfifteenskip_achievement)
+sd(mod_tenfifteenskip_achievement)
+
+overfifteenskip_achievement <- NELS[NELS$`Number of Times Skipped/Cut Classes in Twelfth Grade` == 'Over 15 Times', 'Academic Achievement in 12th Grade']
+mod_overfifteenskip_achievement <- unlist(overfifteenskip_achievement)
+summary(overfifteenskip_achievement)
+sd(mod_overfifteenskip_achievement)
+
+skippedcount <- NELS %>%
+  group_by(`Number of Times Skipped/Cut Classes in Twelfth Grade`) %>%
+  summarize(Count = n())
+print(skippedcount)
+
+df_neverskip_achievement <- data.frame(neverskip_achievement, check.names = FALSE)
+df_onetwoskip_achievement <- data.frame(onetwoskip_achievement, check.names = FALSE)
+df_threesixskip_achievement <- data.frame(threesixskip_achievement, check.names = FALSE)
+
+df_sevennineskip_achievement <- data.frame(sevennineskip_achievement, check.names = FALSE)
+df_tenfifteenskip_achievement <- data.frame(tenfifteenskip_achievement, check.names = FALSE)
+df_overfifteenskip_achievement <- data.frame(overfifteenskip_achievement, check.names = FALSE)
+
+df_sevenoverfifteenskip_achievement <- rbind(df_sevennineskip_achievement, df_tenfifteenskip_achievement, df_overfifteenskip_achievement)
+
+df_skip_list <- list(`Never` = df_neverskip_achievement, `1-2 Times` = df_onetwoskip_achievement, `3-6 Times` = df_threesixskip_achievement, `7-15+ Times` = df_sevenoverfifteenskip_achievement)
+df_skip_combined <- bind_rows(df_skip_list, .id = "Number of Times Skipped/Cut Class in 1 Year")
+
+x_var = "Academic Achievement in 12th Grade"
+y_var = "Number of Times Skipped/Cut Class in 1 Year"
+ggplot(df_skip_combined, mapping = aes(x = .data[[x_var]], y = .data[[y_var]], fill = `Number of Times Skipped/Cut Class in 1 Year`)) + geom_boxplot(alpha = .5) + labs(x = x_var, y = y_var, caption = "Source: NELS 1988") + theme(legend.position = "none")
+
+ggplot(df_skip_combined, mapping = aes(x = `Academic Achievement in 12th Grade`, fill = `Number of Times Skipped/Cut Class in 1 Year`)) + geom_density(alpha = .5) + labs(caption = "Source: NELS 1988")
+```
+
+```{r Variable X - Number of Times Missed School}
+
+
+nevermiss_achievement <- NELS[NELS$`Number of Times Missed School in Twelfth Grade` == 'Never', 'Academic Achievement in 12th Grade']
+mod_nevermiss_achievement <- unlist(nevermiss_achievement)
+summary(nevermiss_achievement)
+sd(mod_nevermiss_achievement)
+
+onetwomiss_achievement <- NELS[NELS$`Number of Times Missed School in Twelfth Grade` == '1-2 Times', 'Academic Achievement in 12th Grade']
+mod_onetwomiss_achievement <- unlist(onetwomiss_achievement)
+summary(onetwomiss_achievement)
+sd(mod_onetwomiss_achievement)
+
+threesixmiss_achievement <- NELS[NELS$`Number of Times Missed School in Twelfth Grade` == '3-6 Times', 'Academic Achievement in 12th Grade']
+mod_threesixsmiss_achievement <- unlist(threesixsmiss_achievement)
+summary(threesixsmiss_achievement)
+sd(mod_threesixsmiss_achievement)
+
+sevenninemiss_achievement <- NELS[NELS$`Number of Times Missed School in Twelfth Grade` == '7-9 Times', 'Academic Achievement in 12th Grade']
+mod_sevenninemiss_achievement <- unlist(sevenninemiss_achievement)
+summary(sevenninemiss_achievement)
+sd(mod_sevenninemiss_achievement)
+
+tenfifteenmiss_achievement <- NELS[NELS$`Number of Times Missed School in Twelfth Grade` == '10-15 Times', 'Academic Achievement in 12th Grade']
+mod_tenfifteenmiss_achievement <- unlist(tenfifteenmiss_achievement)
+summary(tenfifteenmiss_achievement)
+sd(mod_tenfifteenmiss_achievement)
+
+overfifteenmiss_achievement <- NELS[NELS$`Number of Times Missed School in Twelfth Grade` == 'Over 15 Times', 'Academic Achievement in 12th Grade']
+mod_overfifteenmiss_achievement <- unlist(overfifteenmiss_achievement)
+summary(overfifteenmiss_achievement)
+sd(mod_overfifteenmiss_achievement)
+
+missedschoolcount <- NELS %>%
+  group_by(`Number of Times Missed School in Twelfth Grade`) %>%
+  summarize(Count = n())
+print(missedschoolcount)
+
+df_nevermiss_achievement <- data.frame(nevermiss_achievement, check.names = FALSE)
+df_onetwomiss_achievement <- data.frame(onetwomiss_achievement, check.names = FALSE)
+df_threesixmiss_achievement <- data.frame(threesixmiss_achievement, check.names = FALSE)
+df_sevenninemiss_achievement <- data.frame(sevenninemiss_achievement, check.names = FALSE)
+df_tenfifteenmiss_achievement <- data.frame(tenfifteenmiss_achievement, check.names = FALSE)
+df_overfifteenmiss_achievement <- data.frame(overfifteenmiss_achievement, check.names = FALSE)
+
+df_sevenoverfifteenmiss_achievement <- rbind(df_sevenninemiss_achievement, df_tenfifteenmiss_achievement, df_overfifteenmiss_achievement)
+
+df_miss_list <- list(`Never` = df_nevermiss_achievement, `1-2 Times` = df_onetwomiss_achievement, `3-6 Times` = df_threesixmiss_achievement, `7-15+ Times` = df_sevenoverfifteenmiss_achievement)
+df_miss_combined <- bind_rows(df_miss_list, .id = "Number of Times Missed School in 1 Year")
+
+x_var = "Academic Achievement in 12th Grade"
+y_var = "Number of Times Missed School in 1 Year"
+ggplot(df_miss_combined, mapping = aes(x = .data[[x_var]], y = .data[[y_var]], fill = `Number of Times Missed School in 1 Year`)) + geom_boxplot(alpha = .5) + labs(x = x_var, y = y_var, caption = "Source: NELS 1988") + theme(legend.position = "none")
+
+ggplot(df_miss_combined, mapping = aes(x = `Academic Achievement in 12th Grade`, fill = `Number of Times Missed School in 1 Year`)) + geom_density(alpha = .5) + labs(caption = "Source: NELS 1988")
+```
+
+####Time Spent on Other Things - Time Spent on HW in School | Time Spent on HW out of School | Time Spent on Extracurriculars
+
+```{r INCOMPLETE Variable X - Time Spent on HW in School}
+
+NELS$`Time Spent on Homework Weekly in School Per Week in Twelfth Grade`
+
+hwinschoolcount <- NELS %>%
+  group_by(`Time Spent on Homework Weekly in School Per Week in Twelfth Grade`) %>%
+  summarize(Count = n())
+print(hwinschoolcount)
+
+```
+
+```{r INCOMPLETE Variable X - Time Spent on HW out of School}
+
+NELS$`Time Spent on Homework out of School per Week in Twelfth Grade`
+
+hwoutschoolcount <- NELS %>%
+  group_by(`Time Spent on Homework out of School per Week in Twelfth Grade`) %>%
+  summarize(Count = n())
+print(hwoutschoolcount)
+
+```
+
+```{r INCOMPLETE Variable X - Time Spent on Extracurriculars}
+
+NELS$`Time Spent Weekly on Extra-Curricular Activities in Twelfth Grade`
+
+extracurriculartimecount <- NELS %>%
+  group_by(`Time Spent Weekly on Extra-Curricular Activities in Twelfth Grade`) %>%
+  summarize(Count = n())
+print(extracurriculartimecount)
+```
+
+##Quantitative Variables
+
+###Possibilities: Family Size, School Average Daily Attendance Rate, Expected Income at Age 30, Socio-Economic Status, Number of AP Courses Offered by School
+
+```{r INCOMPLETE Variable 1 - }
+
+```
+
+```{r INCOMPLETE Variable 2 - }
+
+```
+
+```{r INCOMPLETE Variable 3 - }
+
+```
+
+
+
+#Part II
+
+
